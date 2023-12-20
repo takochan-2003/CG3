@@ -731,12 +731,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Vector4* vertexData = nullptr;
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
-	//左下
-	vertexData[0] = { -0.5f,-0.5f,0.0f,1.0f };
-	//上
-	vertexData[1] = { 0.0f,0.5f,0.0f,1.0f };
-	//右下
-	vertexData[2] = { 0.5f,-0.5f,0.0f,1.0f };
+	// 左下
+	vertexData[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
+
+	// 上
+	vertexData[1] = { 0.0f, 0.5f, 0.0f, 1.0f };
+
+	// 右下
+	vertexData[2] = { 0.5f, -0.5f, 0.0f, 1.0f };
 
 	D3D12_VIEWPORT viewport{};
 	viewport.Width = kClientWidth;
@@ -778,20 +780,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
-	Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
-	Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+	
+	Matrix4x4 worldMatrix =
+		MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
+	Matrix4x4 cameraMatrix =
+		MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 	Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-	Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.01f, 1000.0f);
-	Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
-	//*wvpData = worldViewProjectionMatrix;
+	Matrix4x4 projectionMatrix =
+		MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.01f, 100.0f);
+	Matrix4x4 worldViewProjectionMatrix =
+		Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+	*wvpData = worldViewProjectionMatrix;
 
-	Transform transforms[kNumInstance];
-
-	for (uint32_t index = 0; index < kNumInstance; ++index) {
-		transforms[index].scale = { 1.0f,1.0f,1.0f };
-		transforms[index].rotate = { 0.0f,0.0f,0.0f };
-		transforms[index].translate = { index * 0.1f,index * 0.1f, index * 0.1f };
-	}
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -803,6 +803,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		srvDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
 		srvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
+	Transform transforms[kNumInstance];
+
+	for (uint32_t index = 0; index < kNumInstance; ++index)
+	{
+		transforms[index].scale = { 1.0f,1.0f,1.0f };
+		transforms[index].rotate = { 0.0f,0.0f,0.0f };
+		transforms[index].translate = { index * 0.1f,index * 0.1f,index * 0.1f };
+	}
 
 
 	MSG msg{};
@@ -820,27 +828,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui::NewFrame();
 
 
-	        *materialData = Vector4(isColor[0], isColor[1], isColor[2], isColor[3]);
-			transform.rotate.y += 0.03f;
-			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
-			*wvpData = worldMatrix;
 
 			float alpha[] = { materialData->w };
 
-			Transform cameraTransform ({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,1.0f,-10.0f });
-			Matrix4x4 cameraMatrix = MakeAffineMatrix({ cameraTransform.scale }, { cameraTransform.rotate }, { cameraTransform.translate });
-			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-			Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 1000.0f);
-			//Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
+			//Transform cameraTransform ({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, { 0.0f,1.0f,-10.0f });
+			//Matrix4x4 cameraMatrix = MakeAffineMatrix({ cameraTransform.scale }, { cameraTransform.rotate }, { cameraTransform.translate });
+			//Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+			//Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 1000.0f);
+			////Matrix4x4 viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
 
 			for (uint32_t index = 0; index < kNumInstance; ++index) {
 				Matrix4x4 worldMatrix =
 					MakeAffineMatrix(transforms[index].scale, transforms[index].rotate, transforms[index].translate);
 				Matrix4x4 worldViewProjectMatrix = Multiply(worldMatrix,Multiply(viewMatrix,projectionMatrix));
-				instancingData[index].WVP = worldViewProjectionMatrix;
+				instancingData[index].WVP = worldViewProjectMatrix;
 				//instancingData[index].World = worldMatrix;//球体じゃないのでいったん削除
 			}
 
+	        *materialData = Vector4(isColor[0], isColor[1], isColor[2], isColor[3]);
+			transform.rotate.y += 0.03f;
+			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
+			*wvpData = worldMatrix;
 			//ここからImGuiの追加するところ
 			
 			ImGui::Begin("Config");
